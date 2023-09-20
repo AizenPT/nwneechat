@@ -1,0 +1,49 @@
+# Import the required modules
+import nwscript
+import requests
+
+# Define the GPT-3 API endpoint and your API key
+GPT3_API_ENDPOINT = "https://api.openai.com/v1/engines/davinci/completions"
+API_KEY = "your_api_key_here"  # Replace with your actual API key
+
+# Define a function to send a message to GPT-3 and get a response
+def get_gpt3_response(message):
+    headers = {
+        "Authorization": f"Bearer {API_KEY}"
+    }
+    data = {
+        "prompt": message,
+        "max_tokens": 50  # Adjust as needed for response length
+    }
+    
+    response = requests.post(GPT3_API_ENDPOINT, headers=headers, json=data)
+    if response.status_code == 200:
+        return response.json()["choices"][0]["text"]
+    else:
+        return "GPT-3 API error"
+
+# Define a function to handle incoming chat messages
+def handle_chat_message():
+    # Get the current chat message
+    chat_message = nwscript.GetPCChatMessage()
+
+    # Check if there is a valid chat message
+    if chat_message:
+        # Extract the text from the chat message
+        message_text = nwscript.GetPCChatMessageContent(chat_message)
+
+        # Check if the message contains the word "bat"
+        if "bat" in message_text.lower():
+            # Send the message to GPT-3 and get a response
+            response = get_gpt3_response(message_text)
+
+            # Display the GPT-3 response in the game's chat
+            nwscript.SendMessageToPC(nwscript.GetPCChatSpeaker(), response)
+
+# Hook the chat message event
+def main():
+    # Register the chat message event handler
+    nwscript.SetEventHandler(nwscript.EVENT_CHAT, handle_chat_message)
+
+# Call the main function
+main()
